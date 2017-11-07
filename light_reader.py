@@ -1,7 +1,9 @@
 #!/usr/bin/python
 import smbus
 import time
- 
+import serial 
+import struct
+
 # Define some constants from the datasheet
  
 DEVICE     = 0x23 # Default device I2C address
@@ -33,6 +35,8 @@ CONSECUTIVE_THRESHOLD_CLEAR = 3
 
 #bus = smbus.SMBus(0) # Rev 1 Pi uses 0
 bus = smbus.SMBus(1)  # Rev 2 Pi uses 1
+
+
  
 def convertToNumber(data):
     # Simple function to convert 2 bytes of data
@@ -42,7 +46,17 @@ def convertToNumber(data):
 def readLight(addr=DEVICE):
     data = bus.read_i2c_block_data(addr,ONE_TIME_HIGH_RES_MODE_1)
     return convertToNumber(data)
- 
+
+def send_val(val):
+    ser = serial.Serial('/dev/ttyACM0', 9600)
+    val_bytes = struct.pack('f', val)
+    ser.write(val_bytes)
+    response_val = ser.readline()
+    ser.close()
+    print 'RECIEVED val back from ardunio of ', response_val
+
+
+
 def main():
     sum_over_threshold = 0.0
     values_over_threshold = 0.0
@@ -50,13 +64,15 @@ def main():
 
     while True:
         light_val = readLight()
-        print 'light value ', light_val
         if light_val > THRESHOLD_VALUE:
             under_threshold = 0
             sum_over_threshold += light_val
             values_over_threshold += 1.0
             if values_over_threshold == CONSECUTIVE_READS:
-                print 'read values over threshold with average ', (sum_over_threshold/values_over_threshold) 
+                avg = sum_over_threshold/values_over_threshold
+                print 'read values over threshold with average ', avg
+                send_val(avg)
+
                 sum_over_threshold = 0.0
                 values_over_threshold = 0.0
         else:
