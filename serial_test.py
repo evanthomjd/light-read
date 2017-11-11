@@ -57,50 +57,17 @@ def send_dosage(val, dosage_left):
             print 'Meds Now empty, reset!'
     else:
         print 'Desired Dosage is %s and remaining doesage is %s. Cannot send dosage, reset!' % (dosage, dosage_left)
-    return result
 
 def send_val(val):
     ser = serial.Serial('/dev/ttyACM0', 9600)
     ser.write(str(val))
+    print 'sending ', val
     response_val = ser.readline()
+    print 'read ', response_val
     ser.close()
     return float(response_val)
 
-def lux_to_dosage(lux):
-    if lux >= 500 and lux < 1000:
-        return 30
-    elif lux >= 1000 and lux < 1500:
-        return 60
-    elif lux >= 1500 and lux < 2000:
-        return 90
-    else: 
-        return 120
 
 
-def main():
-    dosage_left = MAX_DOSAGE
-    sum_over_threshold = 0.0
-    values_over_threshold = 0.0
-    under_threshold = 0
+print 'send with response ', send_val(120)
 
-    while True:
-        light_val = readLight()
-        if light_val > THRESHOLD_VALUE:
-            under_threshold = 0
-            sum_over_threshold += light_val
-            values_over_threshold += 1.0
-            if values_over_threshold == CONSECUTIVE_READS:
-                avg = sum_over_threshold/values_over_threshold
-                print 'read values over threshold with average ', avg
-                dosage_left = send_dosage(avg, dosage_left)
-                sum_over_threshold = 0.0
-                values_over_threshold = 0.0
-        else:
-            under_threshold += 1
-            if under_threshold == CONSECUTIVE_THRESHOLD_CLEAR:
-                sum_over_threshold = 0.0
-                values_over_threshold = 0.0 
-        time.sleep(0.130)
-   
-if __name__=="__main__":
-    main()
