@@ -29,7 +29,7 @@ void loop() {
       hitTarget(target);
       Serial.println((String)(maxPos - pos));
     }else {
-      Serial.println("cannot move that far!");
+      Serial.println("-1");
     }
 
   }
@@ -46,7 +46,6 @@ void hitTarget(int target) {
     setMotor(0,1);
 }
 
-//Takes a smoothed reading. Works ok w/o smoothing too.
 void readPos() {
     float readWeight = 0.7;
     pos = (1-readWeight)*pos + readWeight*analogRead(potPin)/4;
